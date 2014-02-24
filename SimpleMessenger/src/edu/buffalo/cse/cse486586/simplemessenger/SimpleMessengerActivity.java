@@ -1,14 +1,9 @@
 package edu.buffalo.cse.cse486586.simplemessenger;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -191,17 +186,28 @@ public class SimpleMessengerActivity extends Activity {
 			while (true) {
 				Socket socket = serverSocket.accept();
 
-				InputStreamReader inputStreamReader = new InputStreamReader(
+				/*InputStreamReader inputStreamReader = new InputStreamReader(
 						socket.getInputStream());
 				BufferedReader bufferedReader = new BufferedReader(
 						inputStreamReader);
 				String msg = bufferedReader.readLine();
+				bufferedReader.close();
+				inputStreamReader.close();*/
+				
+				ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+				Message message = null;
+				try {
+					message = (Message) objectInputStream.readObject();
+				} catch (ClassNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 
+				String msg = message.getMsg();
 				Log.d("", "MESSAGE Received:" + msg);
 
 				publishProgress(msg);
-				bufferedReader.close();
-				inputStreamReader.close();
+				
 				socket.close();
 			}
 		}
@@ -264,14 +270,23 @@ public class SimpleMessengerActivity extends Activity {
 						10, 0, 2, 2 }), Integer.parseInt(remotePort));
 
 				String msgToSend = msgs[0];
+				
+				Message message = new Message();
+				message.setMsg(msgToSend);
+				
 				try {
 
-					OutputStreamWriter outputStreamWriter = new OutputStreamWriter(
+					/*OutputStreamWriter outputStreamWriter = new OutputStreamWriter(
 							socket.getOutputStream());
 					outputStreamWriter.write(msgToSend);
 
-					Log.d("", "MESSAGE Sent:" + msgToSend + "@");
-					outputStreamWriter.close();
+					outputStreamWriter.close();*/
+					
+					ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+					objectOutputStream.writeObject(message);
+					
+					objectOutputStream.close();
+					
 					socket.close();
 				} catch (IOException e) {
 
